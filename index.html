@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全网VIP视频解析</title>
+    <link rel="shortcut icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎞️</text></svg>" />
+
+    <!-- 引入 Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+          --bs-primary: #198754; /* 使用绿色作为主色调 */
+          --bs-primary-dark: #157347;
+        }
+        body {
+            background-color: #f8f9fa;
+            padding-bottom: 30px; /* 给页脚留空间 */
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark));
+            color: white;
+            padding: 25px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+        }
+        .player-container {
+            background-color: #000;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.2);
+            overflow: hidden;
+            margin-bottom: 30px;
+            position: relative;
+            min-height: 50vh;
+        }
+        #vplay {
+            width: 100%;
+            height: 70vh;
+            min-height: 50vh;
+            border: none;
+            background-color: #000;
+        }
+        .operation {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,.05);
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+        .btn-play {
+            background-color: var(--bs-primary);
+            color: white;
+            border-color: var(--bs-primary);
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+        }
+        .btn-play:hover {
+            background-color: var(--bs-primary-dark);
+            border-color: var(--bs-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,.1);
+        }
+        .btn-play:focus {
+             box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+        }
+        .hint-text-instruction {
+            background-color: #e9f7ef;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid var(--bs-primary);
+        }
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+        }
+        .input-group > .form-select {
+            flex: 0 0 auto;
+            width: auto;
+        }
+        .input-group .btn {
+            white-space: nowrap;
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 页头 -->
+    <div class="header text-center">
+        <div class="container">
+            <h1 class="display-6 fw-bold">全网VIP视频解析</h1>
+            <p class="lead mb-0">免费在线观看全网VIP视频</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 视频播放区域 -->
+        <div class="player-container position-relative">
+            <div class="loading-spinner" id="loading-spinner">
+                <div class="spinner-border text-success" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <iframe
+                id="vplay"
+                name="vplay"
+                src="about:blank"
+                allowfullscreen
+                allow="autoplay; fullscreen; encrypted-media; clipboard-write; picture-in-picture; *"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation allow-pointer-lock allow-presentation"
+            ></iframe>
+        </div>
+
+        <!-- 操作区域 -->
+        <div class="operation">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 d-md-none">
+                    <label for="film-play-url-mobile" class="form-label">视频链接 (移动端)</label>
+                    <input type="url" value="https://www.iqiyi.com/v_19rv3muhqo.html" id="film-play-url-mobile" class="form-control" placeholder="复制视频网址粘贴到这里"/>
+                </div>
+                <div class="col-md-7 d-none d-md-block">
+                    <label for="film-play-url" class="form-label">视频链接</label>
+                    <input type="url" value="https://www.iqiyi.com/v_19rv3muhqo.html" id="film-play-url" class="form-control" placeholder="复制视频网址粘贴到这里"/>
+                </div>
+                <div class="col-md-3 col-12">
+                    <label for="link-choice" class="form-label">解析线路</label>
+                    <select class="form-select" id="link-choice">
+                         <option value="https://jx.jsonplayer.com/player/?url=" selected>JsonPlayer (推荐)</option>
+                         <option value="https://jx.xmflv.com/?url=">虾米</option>
+                         <option value="https://www.yemu.xyz/?url=">夜幕</option>
+                         <option value="https://jx.m3u8.tv/jiexi/?url=">M3U8.TV</option>
+                         <option value="https://www.administratorw.com/video.php?url=">AdminW</option>
+                         <option value="https://jx.bozrc.com:4433/player/?url=">Bozrc</option>
+                         <option value="https://jx.ppflv.com/?url=">PPFLV</option>
+                         <option value="https://www.8090g.cn/jiexi/?url=">8090G</option>
+                         <option value="https://jx.aidouer.net/?url=">爱豆二</option>
+                         <option value="https://jx.playerjy.com/?url=">PlayerJY</option>
+                         <option value="https://z1.m1907.cn/?jx=">1907</option>
+                         <option value="https://jx.618g.com/?url=">618G</option>
+                         <option value="https://api.sigujx.com/?url=">思古</option>
+                         <option value="https://jqaaa.com/jx.php?url=">金桥</option>
+                         <option value="http://api.xfsub.com/index.php?url=">XFSub</option>
+                         <option value="http://www.wmxz.wang/video.php?url=">WMXZ</option>
+                         <option value="https://www.1717yun.com/jx/ty.php?url=">1717云</option>
+                         <option value="http://5.5252e.com/p/iqiyi.php?url=">5252e</option>
+                         <option value="http://www.917k.la/?url=">917k</option>
+                         <option value="https://jx.hls.one/?url=">HLS</option>
+                         <option value="https://bd.jx.cn/?url=">冰豆</option>
+                         <option value="https://jx.973973.xyz/?url=">973</option>
+                         <option value="https://jiexi.789jiexi.com/?url=">789</option>
+                         <option value="https://jx.nnsvip.cn/?url=">UTR</option>
+                         <option value="https://jx.m3u8.tv/jiexi/?url=">芒果</option>
+                         <option value="https://www.ckplayer.vip/jiexi/?url=">CK</option>
+                         <option value="https://jx.nnxv.cn/tv.php?url=">七哥</option>
+                         <option value="https://www.pangujiexi.com/jiexi/?url=">盘古</option>
+                         <option value="https://www.playm3u8.cn/jiexi.php?url=">playm3u8</option>
+                         <option value="https://jx.77flv.cc/?url=">七七云</option>
+                         <option value="https://jx.2s0.cn/player/?url=">极速</option>
+                         <option value="https://jx.playerjy.com/?url=">Player-JY</option>
+                         <option value="https://video.isyour.love/player/getplayer?url=">芒果TV1</option>
+                         <option value="https://im1907.top/?jx=">芒果TV2</option>                         
+                         <option value="http://yun.mt2t.com/yun?url=">mt2t</option>
+                         <option value="http://j.zz22x.com/jx/?url=">zz22x</option>
+                         <option value="http://vip.jlsprh.com/index.php?url=">jlsprh</option>
+                         <option value="https://jx40.net/url=">jx40</option>
+                         <option value="http://jx.cesms.cn/?url=">测试</option>
+                         <option value="https://api.xiguaimg.com/odflv105/index.php?url=">西瓜</option>
+                         <option value="https://beaacc.com/api.php?url=">beaacc</option>
+                         <option value="http://api.smq1.com/?url=">sm</option>
+                         <option value="https://jx.jsonplayer.com/player/?url=">jsplayer</option>
+                         <option value="http://http://py.ha12.xyz/sos/index.php?url=">ha12</option>
+                    </select>
+                </div>
+                <div class="col-md-2 col-12">
+                    <button type="button" class="btn btn-play w-100" id="play-btn">
+                        <span id="btn-text">立即播放</span>
+                        <span class="spinner-border spinner-border-sm d-none" id="btn-spinner" role="status" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 使用说明 -->
+        <div class="hint-text-instruction">
+            <h5 class="mb-3">全网VIP视频解析使用方法</h5>
+            <ul class="mb-0 small">
+                <li>本工具能解析播放各大视频网站的 VIP 视频，包括但不限于 <strong>爱奇艺、腾讯视频、优酷、乐视、芒果TV、搜狐、1905</strong> 等。</li>
+                <li><strong>使用方法：</strong>进入各大视频网站，找到想要观看的VIP视频，然后复制链接（浏览器上的视频地址），粘贴到上面的输入框，并点击“<strong>立即播放</strong>”即可！</li>
+                <li><strong>视频格式支持：</strong>MP4、M3U8、FLV等，如果有无法播放的，请选择切换线路即可解决！视频载入速度跟网速有关，请耐心等待几秒钟。</li>
+                <li><strong>播放问题：</strong>如果播放失败、卡顿，或者影片不完整，请刷新网页或者尝试切换接口。</li>
+                <li class="text-danger"><strong>免责声明：</strong> 本站不进行任何资源存储，只提供解析服务。所有资源版权归原作者所有。请支持正版，合理使用。</li>
+            </ul>
+        </div>
+    </div> <!-- /container -->
+
+    <!-- 引入 jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+    <!-- 引入 Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            const iframe = $('#vplay');
+            const spinner = $('#loading-spinner');
+            const btnText = $('#btn-text');
+            const btnSpinner = $('#btn-spinner');
+            const playBtn = $('#play-btn');
+
+            // 定义播放函数
+            function playVideo() {
+                let videoUrl = $('#film-play-url').val().trim();
+                if (!videoUrl) {
+                    videoUrl = $('#film-play-url-mobile').val().trim();
+                }
+                const apiUrl = $('#link-choice').val().trim();
+
+                if (!videoUrl) {
+                    alert('请输入视频链接！');
+                    $('#film-play-url').focus();
+                    return;
+                }
+                if (!apiUrl) {
+                    alert('请选择解析线路！');
+                    return;
+                }
+
+                const encodedVideoUrl = encodeURIComponent(videoUrl);
+                const finalUrl = apiUrl + encodedVideoUrl;
+
+                console.log("正在加载解析链接: ", finalUrl);
+
+                // 显示加载动画，禁用按钮
+                spinner.show();
+                btnText.text('加载中...');
+                btnSpinner.removeClass('d-none');
+                playBtn.prop('disabled', true);
+
+                // 强制刷新 iframe
+                iframe.attr('src', 'about:blank');
+                setTimeout(function() {
+                    iframe.attr('src', finalUrl);
+                }, 100);
+            }
+
+            // 隐藏加载动画和恢复按钮状态
+            function hideSpinner() {
+                 spinner.hide();
+                 btnText.text('立即播放');
+                 btnSpinner.addClass('d-none');
+                 playBtn.prop('disabled', false);
+            }
+
+            // 当 iframe 开始加载时，可以认为用户已干预或上一个尝试已结束
+            iframe.on('load', function() {
+                console.log("Iframe 开始加载或加载完成");
+                hideSpinner();
+            });
+
+            // 绑定播放按钮点击事件
+            playBtn.on('click', function() {
+                playVideo();
+            });
+
+            // 绑定回车键事件
+            $('#film-play-url, #film-play-url-mobile').on('keypress', function(e) {
+                 if (e.which === 13) {
+                     playVideo();
+                 }
+            });
+
+            // 可选：页面加载时自动播放默认示例视频
+            // playVideo();
+        });
+    </script>
+</body>
+</html>
